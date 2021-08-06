@@ -4,6 +4,7 @@ import logging
 import pathlib
 import shutil
 import pandas
+from sklearn.base import TransformerMixin
 
 from .base import BasePipelineComponent
 from .infered_feature_pipeline import InferedFeaturePipeline
@@ -11,11 +12,10 @@ from .infered_feature_pipeline import InferedFeaturePipeline
 
 class DataLoader(BasePipelineComponent):
     """Data loading component of the training pipeline"""
-    _file_name = ""
     def __init__(self, data, target, preprocessors=[]):
         # transformer list should be stateless
+        self.target = data.pop(target)
         self.data = data
-        self.target = target
         self.preprocessors = preprocessors
         if not isinstance(self.preprocessors, list):
             self.preprocessors = list(preprocessors)
@@ -31,8 +31,8 @@ class DataLoader(BasePipelineComponent):
             [DataLoader]: Instatiated object from file name
         """
         # Should this be the prefered way to get the data ito metadata to point to?
-        cls._file_name = file_name
-        data = pandas.read_csv(cls._file_name)
+        cls.file_name = file_name
+        data = pandas.read_csv(cls.file_name)
         return cls(data, *args, **kwargs)
 
     def run(self):
@@ -69,14 +69,17 @@ class DataLoader(BasePipelineComponent):
     @property
     def metadata(self):
         """return DataLoader metadata for training run"""
+        if not hasattr(self, 'file_name'):
+            self.file_name = None
+
         return {
-            'file_name': self._file_name,
-            'preprocessor': self.preprocessor,
+            'file_name': self.file_name,
+            'preprocessor': self.preprocessors,
             **self.outputs
         }
 
 
-class DataFeatureMapper(BasePipelineComponent):
+class DataFeatureMapper(BasePipelineComponent, TransformerMixin):
     """Feature processing pipeline
 
     Args:
@@ -90,7 +93,7 @@ class DataFeatureMapper(BasePipelineComponent):
         """Use infered pipeline
 
         Returns:
-            ModelTrainer: ModelTrainer initialised object with infered pipeline
+            DataFeatureMapper: Initialised object with InferedFeaturePipeline
         """
         return cls(
             InferedFeaturePipeline()
@@ -103,8 +106,32 @@ class DataFeatureMapper(BasePipelineComponent):
             self
         """
         train_data, train_targets = data_loader.train_set
-        self.feature_pipeline.fit(train_data, train_targets)
+        self.fit(train_data)
 
+    def fit(self, X, y=None):
+        """Wrap feature pipeline and fit pipeline
+
+        Args:
+            X ([type]): [description]
+            y ([type], optional): [description]. Defaults to None.
+
+        Returns:
+            [type]: [description]
+        """
+        self.feature_pipeline.fit(X, y)
+        return self
+    
+    def transform(self, X):
+        """Transform X with fitted feature_pipeline
+
+        Args:
+            X ([type]): [description]
+
+        Returns:
+            [array]: array of transformed/mapped features for estimator input 
+        """
+        return self.feature_pipeline.transform(X)
+        
     @property
     def metadata(self):
         """return DataFeatureMapper metadata for training run"""
@@ -132,7 +159,7 @@ class DataInputValidator(BasePipelineComponent):
         Returns:
             (dict): dictionary containing the valid and invalid samples passed for training
         """
-        data_set_mapped = feature_mapper.feature_pipeline.transform(data)
+        data_set_mapped = feature_mapper.transform(data)
         state = self.validator.predict(data_set_mapped)
         mask = state != -1
         return mask
@@ -146,7 +173,7 @@ class DataInputValidator(BasePipelineComponent):
         # validator can be applied on all sets to record metadata,
         # but only trainset can use the outlier mask
         train_data = getattr(data_loader, 'train_set')[0]
-        data_set_mapped = feature_mapper.feature_pipeline.transform(train_data)
+        data_set_mapped = feature_mapper.transform(train_data)
         self.validator.fit(data_set_mapped)
         for set_name, data_set in data_loader.outputs.items():
             data_set = getattr(data_loader, set_name)[0]
@@ -177,5 +204,5 @@ class DataInputValidator(BasePipelineComponent):
         """Return validator metadata"""
         return {
             'validator': self.validator,
-            'validness_indicator': self.va
+            'validness_indicator': self.validness_indicator
         }

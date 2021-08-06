@@ -37,7 +37,7 @@ class BasePipelineComponent:
             [type]: [description]
         """
         return pickle.load(
-            open(f"{artifact_dir}/{cls.__class__.__name__}", 'rb')
+            open(f"{artifact_dir}/{cls().__class__.__name__}.pkl", 'rb')
         )
    
     @classmethod
