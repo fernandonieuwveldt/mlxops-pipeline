@@ -26,7 +26,7 @@ class ModelTrainer(BasePipelineComponent):
         train_data = train_data.loc[data_validator.trainset_valid]
         train_targets = train_targets.loc[data_validator.trainset_valid]
         # Should the feature mapper component live here?
-        train_data_mapped = feature_mapper.feature_pipeline.transform(train_data)
+        train_data_mapped = feature_mapper.transform(train_data)
         self.estimator.fit(train_data_mapped, train_targets)
 
     def predict(self, data=None, feature_mapper=None):
@@ -39,13 +39,15 @@ class ModelTrainer(BasePipelineComponent):
         Returns:
             [type]: [description]
         """
-        data_mapped = feature_mapper.feature_pipeline.transform(data)
+        data_mapped = feature_mapper.transform(data)
         return self.estimator.predict(data_mapped)
 
     @property
     def metadata(self):
         """Return model training metadata"""
-        return {}
+        return {
+            'estimator': self.estimator
+        }
 
 
 class ModelScore(BasePipelineComponent):
@@ -72,14 +74,14 @@ class ModelEvaluator(BasePipelineComponent):
     _BASE_MODEL_ATTR = 'base_model'
     _NEW_MODEL_ATTR = 'new_model'
 
-    def __init__(self, base_model=None, new_model=None, metrics=None):
+    def __init__(self, base_model=None, metrics=None):
         self.base_model = base_model
-        self.new_model = new_model
         self.metrics = metrics
         self.evaluation_metrics = {}
+        self.new_model = None
         self.push_model = None
 
-    def run(self, data_loader=None, feature_mapper=None, data_validator=None):
+    def run(self, data_loader=None, feature_mapper=None, data_validator=None, new_model=None):
         """Score data with new and current prod model and compare results
 
         Args:
@@ -87,6 +89,7 @@ class ModelEvaluator(BasePipelineComponent):
             feature_mapper ([type], optional): [description]. Defaults to None.
             data_validator ([type], optional): [description]. Defaults to None.
         """
+        self.new_model = new_model
         eval_data, eval_targets = data_loader.eval_set
         # eval_data = eval_data[data_validator.evalset_valid]
         new_model_predictions = self.new_model.predict(eval_data, feature_mapper)
