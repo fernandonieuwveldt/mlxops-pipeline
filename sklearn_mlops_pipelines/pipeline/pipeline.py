@@ -3,12 +3,16 @@
 import logging
 import pathlib
 
-from .base import PipelineMixin
+from .base import BasePipeline
+from sklearn_mlops_pipelines.components import ArtifactPusher
 
 # Can have high level pipeline to test multiple models perhaps?>>
 # Or Supply different estimators to the ModelTrainer component
 
-class ModelTrainingPipeline(PipelineMixin):
+# Pipeline needs to record initial state of components.
+
+
+class ModelTrainingPipeline(BasePipeline):
     """Holds context throughout the pipeline"""
 
     def __init__(self, data_loader=None,
@@ -16,8 +20,8 @@ class ModelTrainingPipeline(PipelineMixin):
                        feature_mapper=None,
                        trainer=None,
                        evaluator=None,
-                       pusher=None):
-        self._logger = logging.getLogger(self.__class__.__name__)
+                       pusher=None,
+                       run_id=None):
         # initialise pipeline components
         self.data_loader = data_loader
         self.data_validator = data_validator
@@ -25,9 +29,11 @@ class ModelTrainingPipeline(PipelineMixin):
         self.trainer = trainer
         self.evaluator = evaluator
         self.pusher = pusher
+        self.run_id = run_id
 
     def run(self):
         """Run all components of the training pipeline"""
+        # Should each component keep a reference to previous components in the pipeline?
         self.data_loader.run()
         self.feature_mapper.run(data_loader=self.data_loader)
         self.data_validator.run(
@@ -45,14 +51,13 @@ class ModelTrainingPipeline(PipelineMixin):
             new_model=self.trainer
         )
         if self.evaluator.push_model:
-            self.pusher.run()
+            self.pusher.run(self.run_id)
 
 
-class ScoringPipeline(PipelineMixin):
+class ScoringPipeline(BasePipeline):
     """Scoring pipeline of new batches of samples
     """
     def __init__(self, data_loader=None, data_validator=None, scorer=None):
-        self._logger = logging.getLogger(self.__class__.__name__)
         # initialise pipeline components
         self.data_loader = data_loader
         self.scorer = scorer
