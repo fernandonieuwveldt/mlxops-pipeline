@@ -21,10 +21,10 @@ def infered_pipeline(X=None):
         [pipeline.Pipeline]: infer pipeline and append estimator at the end of pipeline
     """
     # TODO: extend on types
-    categorical_features = X.columns[X.dtypes != 'float64'].tolist()
-    numerical_features = X.columns[X.dtypes == 'float64'].tolist()
+    categorical_features = X.columns[X.dtypes == 'object'].tolist()
+    numerical_features = X.columns[X.dtypes != 'object'].tolist()
     numerical_transformer_step = (NUMERIC_FEATURE_TRANSFORMER, Normalizer(), numerical_features)
-    categorical_transformer_step = (CATEGORICAL_FEATURE_TRANSFORMER, OneHotEncoder(), categorical_features)
+    categorical_transformer_step = (CATEGORICAL_FEATURE_TRANSFORMER, OneHotEncoder(handle_unknown="ignore"), categorical_features)
     return Pipeline([
         ('infered_feature_pipeline', ColumnTransformer([numerical_transformer_step, categorical_transformer_step]))
     ])
