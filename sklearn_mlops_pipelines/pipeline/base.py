@@ -1,4 +1,5 @@
-"""Mixin for all pipelines"""
+"""Base class for all pipelines"""
+
 import pathlib
 import json
 import pickle
