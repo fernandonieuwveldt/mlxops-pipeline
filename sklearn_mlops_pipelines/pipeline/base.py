@@ -3,18 +3,7 @@ import pathlib
 import json
 import pickle
 
-from sklearn_mlops_pipelines.components import DataLoader, DataInputValidator, DataFeatureMapper,\
-    ModelTrainer, ModelEvaluator, ModelScore, ArtifactPusher
-
-_COMPONENT_MAPPER = {
-    "DataLoader": DataLoader,
-    "DataInputValidator": DataInputValidator,
-    "DataFeatureMapper": DataFeatureMapper,
-    "ModelTrainer": ModelTrainer,
-    "ModelEvaluator": ModelEvaluator,
-    "ModelScore": ModelScore,
-    "ArtifactPusher": ArtifactPusher
-}
+from sklearn_mlops_pipelines.components import _COMPONENT_MAPPER
 
 
 class BasePipeline:
