@@ -173,11 +173,12 @@ class DataInputValidator(BasePipelineComponent):
         mask = state != -1
         return mask
 
-    def run(self, data_loader=None, feature_mapper=None):
+    def _run_with_validator(self, data_loader=None, feature_mapper=None):
         """Run validator component and record validation indicator
 
-        Returns:
-            self
+        Args:
+            data_loader ([DataLoader]): [description]. Defaults to None.
+            feature_mapper ([DataFeatureMapper], optional): [description]. Defaults to None.
         """
         # validator can be applied on all sets to record metadata,
         # but only trainset can use the outlier mask
@@ -187,6 +188,22 @@ class DataInputValidator(BasePipelineComponent):
         for set_name, data_set in data_loader.outputs.items():
             data_set = getattr(data_loader, set_name)[0]
             self.validness_indicator[set_name] = self.check_validity(data_set, feature_mapper)
+
+    def run(self, data_loader=None, feature_mapper=None):
+        """Run component. If validator None validness_indicator is the same as the train/test split
+        from the DataLoader
+
+        Args:
+            data_loader ([DataLoader]): [description]. Defaults to None.
+            feature_mapper ([DataFeatureMapper], optional): [description]. Defaults to None.
+        """
+        if self.validator is not None:
+            self._run_with_validator(data_loader, feature_mapper)
+            return
+
+        self.validness_indicator = {
+            **data_loader.outputs
+        }
 
     @property
     def trainset_valid(self):
