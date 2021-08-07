@@ -12,10 +12,13 @@ from .infered_feature_pipeline import InferedFeaturePipeline
 
 class DataLoader(BasePipelineComponent):
     """Data loading component of the training pipeline"""
-    def __init__(self, data, target, preprocessors=[]):
-        # transformer list should be stateless
+    def __init__(self, data, target, splitter, preprocessors=[]):
         self.target = data.pop(target)
         self.data = data
+        if not hasattr(splitter, "get_n_splits"):
+            raise("splitter should have get_n_splits method")
+        self.splitter = splitter
+        # preprocessors should be stateless
         self.preprocessors = preprocessors
         if not isinstance(self.preprocessors, list):
             self.preprocessors = list(preprocessors)
@@ -40,7 +43,13 @@ class DataLoader(BasePipelineComponent):
         if self.preprocessors:
             for preprocessor in self.preprocessors:
                 self.data = preprocessor.transform(self.data)
-        self._train_set, self._test_set, self._eval_set = [self.data.index.tolist()]*3  # temp hack while devving
+        self.splitter.get_n_splits(
+            X=self.data, y=self.target, 
+        )
+        self._train_set, self._test_set = next(
+            self.splitter.split(X=self.data, y=self.target)
+        )
+        self._eval_set = self._test_set
 
     @property
     def outputs(self):
