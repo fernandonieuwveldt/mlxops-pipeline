@@ -60,7 +60,7 @@ class ModelScore(BasePipelineComponent):
         """Score data with new and current production(or best) model and compare results.
 
         Args:
-            data ([pandas.DataFrame]): Raw feature data
+            data_loader ([DataLoader]): data loading component holding data and dataset splits.
             feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
             data_validator ([DataInputValidator]): Data input validator.
         """
@@ -78,10 +78,21 @@ class ModelEvaluator(BasePipelineComponent):
 
     def __init__(self, base_model=None, metrics=None):
         self.base_model = base_model
+        if self.base_model is not None:
+            self.load_base_model_artifacts(self.base_model)
         self.metrics = metrics
         self.evaluation_metrics = {}
-        self.new_model = None
         self.push_model = None
+
+    def load_base_model_artifacts(self, base_model_folder):
+        """Load base model artifacts. Persisted DataFeatureMapper and ModelTrainer should be loaded.
+
+        Args:
+            base_model_folder ([str]): directory of saved model artifacts
+        """
+        from sklearn_mlops_pipelines.components import DataFeatureMapper
+        self.base_model_feature_mapper = DataFeatureMapper.load(base_model_folder)
+        self.base_model_estimator = ModelTrainer.load(base_model_folder)
 
     def run(self, data_loader=None, feature_mapper=None, data_validator=None, new_model=None):
         """Score data with new and current prod model and compare results
@@ -91,13 +102,13 @@ class ModelEvaluator(BasePipelineComponent):
             feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
             data_validator ([DataInputValidator]): Data input validator.
         """
-        self.new_model = new_model
         eval_data, eval_targets = data_loader.eval_set
+        # create properties in validator
         eval_data = eval_data[data_validator.evalset_valid]
-        new_model_predictions = self.new_model.predict(eval_data, feature_mapper)
-        base_model_predictions = self.base_model.predict(eval_data, feature_mapper)
-        import pdb
-        pdb.set_trace()
+        eval_targets = eval_targets[data_validator.evalset_valid]
+        new_model_predictions = new_model.predict(eval_data, feature_mapper)
+        base_model_predictions = self.base_model_estimator.predict(eval_data, self.base_model_feature_mapper)
+
         for metric in self.metrics:
             self.evaluation_metrics[self._NEW_MODEL_ATTR] = metric(eval_targets, new_model_predictions)
             self.evaluation_metrics[self._BASE_MODEL_ATTR] = metric(eval_targets, base_model_predictions)

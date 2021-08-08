@@ -38,16 +38,22 @@ class DataLoader(BasePipelineComponent):
         return cls(data, *args, **kwargs)
 
     def run(self):
-        """Run component step"""
+        """Apply preprocessors if supplied. Split data into train and test splits using splitter
+
+        Returns:
+            [DataLoader]: self
+        """
         if self.preprocessors:
             for preprocessor in self.preprocessors:
                 self.data = preprocessor.transform(self.data)
+
         self.splitter.get_n_splits(
             X=self.data, y=self.target, 
         )
         self._train_set, self._test_set = next(
             self.splitter.split(X=self.data, y=self.target)
         )
+        # We can split on test_set t
         self._eval_set = self._test_set
         return self
 
@@ -90,9 +96,6 @@ class DataLoader(BasePipelineComponent):
 
 class DataFeatureMapper(BasePipelineComponent, TransformerMixin):
     """Feature processing pipeline
-
-    Args:
-        BasePipelineComponent ([type]): [description]
     """
     def __init__(self, feature_pipeline=None):
         self.feature_pipeline = feature_pipeline
@@ -121,11 +124,11 @@ class DataFeatureMapper(BasePipelineComponent, TransformerMixin):
         """Wrap feature pipeline and fit pipeline
 
         Args:
-            X ([type]): [description]
-            y ([type], optional): [description]. Defaults to None.
+            X ([pandas.DataFrame]): Features DataFrame
+            y ([pandas.Series], optional): Targets
 
         Returns:
-            [type]: [description]
+            [DataFeatureMapper]: self
         """
         self.feature_pipeline.fit(X, y)
         return self
@@ -134,7 +137,7 @@ class DataFeatureMapper(BasePipelineComponent, TransformerMixin):
         """Transform X with fitted feature_pipeline
 
         Args:
-            X ([type]): [description]
+            X ([pandas.DataFrame]): Features DataFrame
 
         Returns:
             [array]: array of transformed/mapped features for estimator input 
