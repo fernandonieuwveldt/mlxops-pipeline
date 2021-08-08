@@ -33,7 +33,6 @@ class DataLoader(BasePipelineComponent):
         Returns:
             [DataLoader]: Instatiated object from file name
         """
-        # Should this be the prefered way to get the data ito metadata to point to?
         cls.file_name = file_name
         data = pandas.read_csv(cls.file_name)
         return cls(data, *args, **kwargs)
@@ -50,6 +49,7 @@ class DataLoader(BasePipelineComponent):
             self.splitter.split(X=self.data, y=self.target)
         )
         self._eval_set = self._test_set
+        return self
 
     @property
     def outputs(self):
@@ -152,8 +152,6 @@ class DataFeatureMapper(BasePipelineComponent, TransformerMixin):
 class DataInputValidator(BasePipelineComponent):
     """Data validation component of the training pipeline
     """
-    _VALID_OBSERVATIONS_ATTR = 'valid_observations'
-    _INVALID_OBSERVATIONS_ATTR = 'invalid_observations'
 
     def __init__(self, validator=None):
         self.validator = validator
@@ -163,10 +161,11 @@ class DataInputValidator(BasePipelineComponent):
         """Run validator component and record validation indicator
 
         Args:
-            data (pandas.DataFrame):
+            data ([pandas.DataFrame]): Raw feature data
+            feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
 
         Returns:
-            (dict): dictionary containing the valid and invalid samples passed for training
+            [array]: Boolean mask for valid and invalid samples.
         """
         data_set_mapped = feature_mapper.transform(data)
         state = self.validator.predict(data_set_mapped)
@@ -174,11 +173,11 @@ class DataInputValidator(BasePipelineComponent):
         return mask
 
     def _run_with_validator(self, data_loader=None, feature_mapper=None):
-        """Run validator component and record validation indicator
+        """Run data validator component and record validation indicator by applying validator
 
         Args:
-            data_loader ([DataLoader]): [description]. Defaults to None.
-            feature_mapper ([DataFeatureMapper], optional): [description]. Defaults to None.
+            data_loader ([DataLoader]): data loading component holding data and dataset splits.
+            feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
         """
         # validator can be applied on all sets to record metadata,
         # but only trainset can use the outlier mask
@@ -190,20 +189,20 @@ class DataInputValidator(BasePipelineComponent):
             self.validness_indicator[set_name] = self.check_validity(data_set, feature_mapper)
 
     def run(self, data_loader=None, feature_mapper=None):
-        """Run component. If validator None validness_indicator is the same as the train/test split
+        """Run component. If validator is None the validness_indicator mask is the same as the train/test split mask
         from the DataLoader
 
         Args:
-            data_loader ([DataLoader]): [description]. Defaults to None.
-            feature_mapper ([DataFeatureMapper], optional): [description]. Defaults to None.
+            data_loader ([DataLoader]): data loading component holding data and dataset splits.
+            feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
         """
-        if self.validator is not None:
-            self._run_with_validator(data_loader, feature_mapper)
-            return
-
         self.validness_indicator = {
             **data_loader.outputs
         }
+
+        if self.validator is not None:
+            self._run_with_validator(data_loader, feature_mapper)
+        return self
 
     @property
     def trainset_valid(self):
