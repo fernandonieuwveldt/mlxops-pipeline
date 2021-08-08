@@ -24,6 +24,8 @@ class DataLoader(BasePipelineComponent):
             self.preprocessors = list(preprocessors)
 
     @classmethod
+    # DataLoader should be instantiated by loading data and preferable for
+    # pickling/unpickling. See __getstate__ and setstate__
     def from_file(cls, file_name=None, *args, **kwargs):
         """Read in data from file and create DataLoader instance
 
@@ -53,7 +55,7 @@ class DataLoader(BasePipelineComponent):
         self._train_set, self._test_set = next(
             self.splitter.split(X=self.data, y=self.target)
         )
-        # We can split on test_set t
+        # We can split on test_set to create eval_set?
         self._eval_set = self._test_set
         return self
 
@@ -92,6 +94,26 @@ class DataLoader(BasePipelineComponent):
             'preprocessor': self.preprocessors,
             **self.outputs
         }
+
+    def __getstate__(self):
+        """Update and delete data from state
+        """
+        state = self.__dict__.copy()
+        # add file_name to state
+        if __class__.file_name:
+            state['file_name'] = __class__.file_name
+        # Remove the unpicklable entries.
+        del state['data']
+        return state
+
+    def __setstate__(self, state):
+        """Restore instance attribute by loading data from file
+        """
+        self.__dict__.update(state)
+        # Restore data attribute by loading from file
+        if 'file_name' in self.__dict__:
+            import pandas
+            self.data = pandas.read_csv(self.file_name)
 
 
 class DataFeatureMapper(BasePipelineComponent, TransformerMixin):
