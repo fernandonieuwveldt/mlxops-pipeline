@@ -15,29 +15,28 @@ class ModelTrainer(BasePipelineComponent):
         self.estimator = estimator
 
     def run(self, data_loader=None, feature_mapper=None, data_validator=None):
-        """[summary]
+        """Retrieve data from data_loader and the validness mask from data_validator and fit estimator
 
         Args:
-            data_loader ([type], optional): [description]. Defaults to None.
-            feature_mapper ([type], optional): [description]. Defaults to None.
-            data_validator ([type], optional): [description]. Defaults to None.
+            data_loader ([DataLoader]): data loading component holding data and dataset splits.
+            feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
+            data_validator ([DataInputValidator]): Data input validator.
         """
         train_data, train_targets = data_loader.train_set
         train_data = train_data.loc[data_validator.trainset_valid]
         train_targets = train_targets.loc[data_validator.trainset_valid]
-        # Should the feature mapper component live here?
         train_data_mapped = feature_mapper.transform(train_data)
         self.estimator.fit(train_data_mapped, train_targets)
 
     def predict(self, data=None, feature_mapper=None):
-        """[summary]
+        """Apply feature mapper to map raw feature to estimator ready array and apply fitted estimator.
 
         Args:
-            data ([type], optional): [description]. Defaults to None.
-            feature_mapper ([type], optional): [description]. Defaults to None.
+            data ([pandas.DataFrame]): Raw feature data
+            feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
 
         Returns:
-            [type]: [description]
+            [array]: array of predictions
         """
         data_mapped = feature_mapper.transform(data)
         return self.estimator.predict(data_mapped)
@@ -58,14 +57,17 @@ class ModelScore(BasePipelineComponent):
         self.predictions = {}
 
     def run(self, data_loader=None, feature_mapper=None, data_validator=None):
-        """Score data with new and current prod model and compare results
+        """Score data with new and current production(or best) model and compare results.
 
-        Returns:
-            Scored samples
+        Args:
+            data ([pandas.DataFrame]): Raw feature data
+            feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
+            data_validator ([DataInputValidator]): Data input validator.
         """
         for set_name, data_set in data_loader.outputs.items():
             data_set = getattr(data_loader, set_name)[0]
             self.predictions[set_name] = self.model.predict(data_set)
+        return self
 
 
 class ModelEvaluator(BasePipelineComponent):
@@ -85,22 +87,24 @@ class ModelEvaluator(BasePipelineComponent):
         """Score data with new and current prod model and compare results
 
         Args:
-            data_loader ([type], optional): [description]. Defaults to None.
-            feature_mapper ([type], optional): [description]. Defaults to None.
-            data_validator ([type], optional): [description]. Defaults to None.
+            data ([pandas.DataFrame]): Raw feature data
+            feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
+            data_validator ([DataInputValidator]): Data input validator.
         """
         self.new_model = new_model
         eval_data, eval_targets = data_loader.eval_set
-        # eval_data = eval_data[data_validator.evalset_valid]
+        eval_data = eval_data[data_validator.evalset_valid]
         new_model_predictions = self.new_model.predict(eval_data, feature_mapper)
         base_model_predictions = self.base_model.predict(eval_data, feature_mapper)
-
+        import pdb
+        pdb.set_trace()
         for metric in self.metrics:
             self.evaluation_metrics[self._NEW_MODEL_ATTR] = metric(eval_targets, new_model_predictions)
             self.evaluation_metrics[self._BASE_MODEL_ATTR] = metric(eval_targets, base_model_predictions)
 
         self.push_model = self.evaluation_metrics[self._NEW_MODEL_ATTR] >\
             self.evaluation_metrics[self._BASE_MODEL_ATTR]
+        return self
 
     @property
     def metadata(self):
