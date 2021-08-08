@@ -9,7 +9,16 @@ from .base import BasePipelineComponent
 
 
 class ModelTrainer(BasePipelineComponent):
-    """Model component of the training pipeline
+    """
+    Model component of the training pipeline. ModelTrainer is the step 4 in the Pipeline and needs
+    a runned DataLoader, DataFeatureMapper and DataInputValidator to fit estimator. 
+
+    Examples
+    --------
+    >>> trainer = ModelTrainer(
+        estimator=LogisticRegression()
+    )
+    >>> trainer.run(data_loader=data_loader, feature_mapper=feature_mapper, data_validator=data_validator)
     """
     def __init__(self, estimator=None):
         self.estimator = estimator
@@ -71,7 +80,16 @@ class ModelScore(BasePipelineComponent):
 
 
 class ModelEvaluator(BasePipelineComponent):
-    """Compare metrics between trained model and current model in production
+    """
+    Compare metrics between trained model and current model in production
+
+    Examples
+    --------
+    >>> from sklearn.metrics import accuracy_score
+    >>> evaluator = ModelEvaluator(
+        base_model="base_model_folder", new_model=new_trainer, metrics=[accuracy_score]
+    )
+    >>> evaluator.run(data_loader=data_loader, feature_mapper=feature_mapper, data_validator=data_validator)
     """
     _BASE_MODEL_ATTR = 'base_model'
     _NEW_MODEL_ATTR = 'new_model'

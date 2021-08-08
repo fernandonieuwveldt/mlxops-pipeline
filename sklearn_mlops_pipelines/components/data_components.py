@@ -11,7 +11,15 @@ from .infered_feature_pipeline import InferedFeaturePipeline
 
 
 class DataLoader(BasePipelineComponent):
-    """Data loading component of the training pipeline"""
+    """
+    Data loading component of the training pipeline
+
+    Examples
+    --------
+    >>> feature_mapper = DataFeatureMapper.from_infered_pipeline()
+    >>> # run takes DataLoader object as input
+    >>> feature_mapper.run(data_loader=data_loader)
+    """
     def __init__(self, data, target, splitter, preprocessors=[]):
         self.target = data.pop(target)
         self.data = data
@@ -117,7 +125,16 @@ class DataLoader(BasePipelineComponent):
 
 
 class DataFeatureMapper(BasePipelineComponent, TransformerMixin):
-    """Feature processing pipeline
+    """
+    Feature processing pipeline. Apply Feature mapper for example Normalization for
+    numeric features and OneHotEncoder for categoric features. Mapper here is stateful.
+
+    Examples
+    --------
+    >>> data_validator = DataInputValidator(
+        validator=IsolationForest(contamination=0.1)
+    )
+    >>> data_validator.run(data_loader=data_loader, feature_mapper=feature_mapper)
     """
     def __init__(self, feature_pipeline=None):
         self.feature_pipeline = feature_pipeline

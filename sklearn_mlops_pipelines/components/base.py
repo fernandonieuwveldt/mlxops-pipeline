@@ -4,9 +4,10 @@ from abc import ABC, abstractmethod
 import pickle
 
 
-class BasePipelineComponent:
-    """Base Class for a training pipeline component"""
-
+class BasePipelineComponent(ABC):
+    """Base Class for a training pipeline component. Each step in ML life cycle will inherit from this Base class.
+    Base clas methods mainly contains saving and loading of pipeline components artifacts .
+    """
     @abstractmethod
     def run(self, *args, **kwargs):
         """Run the pipeline component"""
