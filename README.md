@@ -1,2 +1,2 @@
-# sklearn-mlops--pipelines
-MLOps pipeline with components for training and scoring
+# Machine Learning Experiment and Operations Pipelines
+Pipeline for Machine Learning development lifecycle.
