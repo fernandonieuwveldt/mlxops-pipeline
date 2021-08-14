@@ -4,7 +4,7 @@ import logging
 import pathlib
 
 from .base import BasePipeline
-from sklearn_mlops_pipelines.components import ArtifactPusher
+from mlxops_pipeline.components import ArtifactPusher
 
 # Can have high level pipeline to test multiple models perhaps?>>
 # Or Supply different estimators to the ModelTrainer component

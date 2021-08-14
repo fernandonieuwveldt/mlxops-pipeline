@@ -16,9 +16,11 @@ class DataLoader(BasePipelineComponent):
 
     Examples
     --------
-    >>> feature_mapper = DataFeatureMapper.from_infered_pipeline()
+    >>> data_loader = DataLoader.from_file(
+        file_url, target='target', splitter=ShuffleSplit(n_splits=1, test_size=0.1)
+    )
     >>> # run takes DataLoader object as input
-    >>> feature_mapper.run(data_loader=data_loader)
+    >>> data_loader.run()
     """
     def __init__(self, data, target, splitter, preprocessors=[]):
         self.target = data.pop(target)
@@ -125,16 +127,14 @@ class DataLoader(BasePipelineComponent):
 
 
 class DataFeatureMapper(BasePipelineComponent, TransformerMixin):
-    """
-    Feature processing pipeline. Apply Feature mapper for example Normalization for
+    """Feature processing pipeline. Apply Feature mapper for example Normalization for
     numeric features and OneHotEncoder for categoric features. Mapper here is stateful.
 
     Examples
     --------
-    >>> data_validator = DataInputValidator(
-        validator=IsolationForest(contamination=0.1)
-    )
-    >>> data_validator.run(data_loader=data_loader, feature_mapper=feature_mapper)
+    >>> feature_mapper = DataFeatureMapper.from_infered_pipeline()
+    >>> # run takes DataLoader object as input
+    >>> feature_mapper.run(data_loader=data_loader)
     """
     def __init__(self, feature_pipeline=None):
         self.feature_pipeline = feature_pipeline
@@ -191,10 +191,16 @@ class DataFeatureMapper(BasePipelineComponent, TransformerMixin):
         }
 
 
-class DataInputValidator(BasePipelineComponent):
+class DataValidator(BasePipelineComponent):
     """Data validation component of the training pipeline
-    """
 
+    Examples
+    --------
+    >>> data_validator = DataValidator(
+        validator=IsolationForest(contamination=0.1)
+    )
+    >>> data_validator.run(data_loader=data_loader, feature_mapper=feature_mapper)
+    """
     def __init__(self, validator=None):
         self.validator = validator
         self.validness_indicator = {}
@@ -232,7 +238,7 @@ class DataInputValidator(BasePipelineComponent):
 
     def run(self, data_loader=None, feature_mapper=None):
         """Run component. If validator is None the validness_indicator mask is the same as the train/test split mask
-        from the DataLoader
+        from the data_loader.
 
         Args:
             data_loader ([DataLoader]): data loading component holding data and dataset splits.

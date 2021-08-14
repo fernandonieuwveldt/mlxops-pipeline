@@ -4,7 +4,7 @@ import pathlib
 import json
 import pickle
 
-from sklearn_mlops_pipelines.components import _COMPONENT_MAPPER
+from mlxops_pipeline.components import _COMPONENT_MAPPER
 
 
 class BasePipeline:
@@ -36,6 +36,9 @@ class BasePipeline:
 
         with open(f"{folder_name}/run_uuid.json", 'w') as jsonfile:
             json.dump(self.run_id, jsonfile)
+
+        # with open(f"{folder_name}/component_metadata.json", 'w') as jsonfile:
+        #     json.dump(self.model_training_metadata, jsonfile)
 
     def load(self, folder_name=None):
         """Load final state of model training Pipeline.
