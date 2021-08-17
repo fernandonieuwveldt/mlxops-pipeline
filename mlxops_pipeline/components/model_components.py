@@ -59,8 +59,7 @@ class ModelTrainer(BasePipelineComponent):
 
 
 class ModelEvaluator(BasePipelineComponent):
-    """
-    Compare metrics between trained model and current model in production
+    """Compare metrics between trained model and current model in production
 
     Examples
     --------
@@ -74,6 +73,7 @@ class ModelEvaluator(BasePipelineComponent):
     _NEW_MODEL_ATTR = 'new_model'
 
     def __init__(self, base_model=None, metrics=None):
+        # TODO: base_model option can also be a runned ModelTrainer object
         self.base_model = base_model
         if self.base_model is not None:
             self.load_base_model_artifacts(self.base_model)

@@ -19,7 +19,6 @@ class DataLoader(BasePipelineComponent):
     >>> data_loader = DataLoader.from_file(
         file_url, target='target', splitter=ShuffleSplit(n_splits=1, test_size=0.1)
     )
-    >>> # run takes DataLoader object as input
     >>> data_loader.run()
     """
     def __init__(self, data, target, splitter, preprocessors=[]):
@@ -232,6 +231,7 @@ class DataValidator(BasePipelineComponent):
         train_data = getattr(data_loader, 'train_set')[0]
         data_set_mapped = feature_mapper.transform(train_data)
         self.validator.fit(data_set_mapped)
+
         for set_name, data_set in data_loader.outputs.items():
             data_set = getattr(data_loader, set_name)[0]
             self.validness_indicator[set_name] = self.check_validity(data_set, feature_mapper)

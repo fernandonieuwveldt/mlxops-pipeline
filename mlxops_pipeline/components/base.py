@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 import pickle
+import inspect
 
 
 class BasePipelineComponent(ABC):
@@ -40,10 +41,20 @@ class BasePipelineComponent(ABC):
         return pickle.load(
             open(f"{artifact_dir}/{cls.__name__}.pkl", 'rb')
         )
-   
-    @classmethod
-    def from_config(cls, artifact_dir=None):
-        pass
 
-    def get_config(self):
-        return self.metadata
+    @classmethod
+    def get_init_args(cls):
+        """Get constructor names"""
+        # get the contructor arguments of the component
+        init_signature = inspect.signature(cls.__init__)
+        return sorted(
+            [p.name for p in init_signature.parameters.values() if p.name != 'self']
+        )
+
+    def get_init_values(self):
+        """
+        Get instance attribute values
+        """
+        return {
+            key: getattr(self, key) for key in self.get_init_args() 
+        }
