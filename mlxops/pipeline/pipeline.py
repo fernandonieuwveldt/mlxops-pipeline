@@ -4,7 +4,7 @@ import logging
 import pathlib
 
 from .base import BasePipeline
-from mlxops_pipeline.components import ArtifactPusher
+from mlxops.components import ArtifactPusher
 
 # Can have high level pipeline to test multiple models perhaps?>>
 # Or Supply different estimators to the ModelTrainer component
@@ -67,5 +67,5 @@ class ScoringPipeline(BasePipeline):
         """Run all components of the scoring pipeline"""
         self.data_loader.run()
         self.data_validator.run(data_loader=self.data_loader)
-        results = self.scorer.run(data_loader=self.data_loader(split_percentage=0),  # for scoring train and eval are the same
+        results = self.scorer.run(data_loader=self.data_loader(),
                                   data_validator=self.data_validator)

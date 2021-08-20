@@ -87,7 +87,7 @@ class ModelEvaluator(BasePipelineComponent):
         Args:
             base_model_folder ([str]): directory of saved model artifacts
         """
-        from mlxops_pipeline.components import DataFeatureMapper
+        from mlxops.components import DataFeatureMapper
         self.base_model_feature_mapper = DataFeatureMapper.load(base_model_folder)
         self.base_model_estimator = ModelTrainer.load(base_model_folder)
 
@@ -136,6 +136,7 @@ class ModelEvaluator(BasePipelineComponent):
         if self.base_model:
             self.model_metrics(self.base_model_estimator, self._BASE_MODEL_ATTR, self.base_model_feature_mapper,
                                eval_data, eval_targets)
+        # check if model artifacts should be pushed
         self.push_model = self.evaluation_metrics[self._NEW_MODEL_ATTR] >\
             self.evaluation_metrics[self._BASE_MODEL_ATTR]
         return self
