@@ -91,6 +91,35 @@ class ModelEvaluator(BasePipelineComponent):
         self.base_model_feature_mapper = DataFeatureMapper.load(base_model_folder)
         self.base_model_estimator = ModelTrainer.load(base_model_folder)
 
+    def extract_data(self, data_loader, data_validator):
+        """Extract valid data 
+
+        Args:
+            data_loader ([DataLoader]): data loading component holding data and dataset splits.
+            data_validator ([DataValidator]): Data input validator.
+
+        Returns:
+            eval_data, eval_targets: pandas DataFrame and Series
+        """
+        eval_data, eval_targets = data_loader.eval_set
+        return eval_data[data_validator.evalset_valid],\
+               eval_targets[data_validator.evalset_valid]
+
+    def model_metrics(self, model, model_name, feature_mapper, eval_data, eval_targets):
+        """Record model metrics
+
+        Args:
+            model (ModelTrainer): Trained or loaded model
+            model_name (str): Name of model
+            feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
+            eval_data ([type]): Valid feature data
+            eval_targets ([type]): Targets of the valid feature dataset
+        """
+        predictions = model.predict(eval_data, feature_mapper)
+        # This only works for one metric at the moment
+        for metric in self.metrics:
+            self.evaluation_metrics[model_name] = metric(eval_targets, predictions)
+
     def run(self, data_loader=None, feature_mapper=None, data_validator=None, new_model=None):
         """Score data with new and current prod model and compare results
 
@@ -99,23 +128,14 @@ class ModelEvaluator(BasePipelineComponent):
             feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
             data_validator ([DataValidator]): Data input validator.
         """
-        eval_data, eval_targets = data_loader.eval_set
-        # create properties in validator
-        eval_data = eval_data[data_validator.evalset_valid]
-        eval_targets = eval_targets[data_validator.evalset_valid]
-        new_model_predictions = new_model.predict(eval_data, feature_mapper)
-        # this is not the correct way to do it. Fix later
+        eval_data, eval_targets = self.extract_data(data_loader, data_validator)
+        self.model_metrics(new_model, self._NEW_MODEL_ATTR, feature_mapper, eval_data, eval_targets)
+        # set default metric value if no base model supplied
+        self.evaluation_metrics[self._BASE_MODEL_ATTR] = 0
+        # if base model supplied update metrics
         if self.base_model:
-            base_model_predictions = self.base_model_estimator.predict(eval_data, self.base_model_feature_mapper)
-
-        for metric in self.metrics:
-            self.evaluation_metrics[self._NEW_MODEL_ATTR] = metric(eval_targets, new_model_predictions)
-            # this is not the correct way to do it. Fix later
-            if self.base_model:
-                self.evaluation_metrics[self._BASE_MODEL_ATTR] = metric(eval_targets, base_model_predictions)
-            else:
-                self.evaluation_metrics[self._BASE_MODEL_ATTR] = 0.0
-
+            self.model_metrics(self.base_model_estimator, self._BASE_MODEL_ATTR, self.base_model_feature_mapper,
+                               eval_data, eval_targets)
         self.push_model = self.evaluation_metrics[self._NEW_MODEL_ATTR] >\
             self.evaluation_metrics[self._BASE_MODEL_ATTR]
         return self
