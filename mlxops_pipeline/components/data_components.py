@@ -32,9 +32,9 @@ class DataLoader(BasePipelineComponent):
         if not isinstance(self.preprocessors, list):
             self.preprocessors = list(preprocessors)
 
-    @classmethod
     # DataLoader should be instantiated by loading data and preferable for
     # pickling/unpickling. See __getstate__ and setstate__
+    @classmethod
     def from_file(cls, file_name=None, *args, **kwargs):
         """Read in data from file and create DataLoader instance
 
