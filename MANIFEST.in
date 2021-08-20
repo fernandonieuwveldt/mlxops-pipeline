@@ -1,0 +1,9 @@
+include *.md
+include ./mlxops/*.py
+include ./mlxops/components/*.py
+include ./mlxops/pipelines/*.py
+
+include ./requirements.txt
+
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
