@@ -1,7 +1,7 @@
 include *.md
 include ./mlxops/*.py
 include ./mlxops/components/*.py
-include ./mlxops/pipelines/*.py
+include ./mlxops/pipeline/*.py
 
 include ./requirements.txt
 
