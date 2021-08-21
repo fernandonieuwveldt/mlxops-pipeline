@@ -184,9 +184,11 @@ loaded_pipeline = ModelTrainingPipeline()
 loaded_pipeline.load("base_model")
 ```
 Each component can be access through ```loaded_pipeline.component``` where component can be any of:
+```
 * data_loader
 * data_validator
 * evaluator
 * feature_mapper
-* load
+* trainer
 * pusher
+```

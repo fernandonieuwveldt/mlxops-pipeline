@@ -19,22 +19,25 @@ class BasePipeline:
                 for _, component in self.__dict__.items() if hasattr(component, 'run')
         }
 
-    def save_model_artifacts(self, folder_name=None):
+    def save_model_artifacts(self, artifact_dir=None):
         """Save all training artifacts set at training
 
         Args:
-            folder_name ([str]): Folder location to save artifacts
+            artifact_dir ([str]): Folder location to save artifacts
         """
+        artifact_path = pathlib.Path(artifact_dir)
+        artifact_path.mkdir(parents=True)
+
         component_instance_connector = {}
         for instance_name, component in self.__dict__.items():
             if hasattr(component, 'run'):
                 component_instance_connector[component.__class__.__name__] = instance_name
-                component.save('base_model')
+                component.save(artifact_dir)
 
-        with open(f"{folder_name}/component_instance_connector.json", 'w') as jsonfile:
+        with open(f"{artifact_dir}/component_instance_connector.json", 'w') as jsonfile:
             json.dump(component_instance_connector, jsonfile)
 
-        with open(f"{folder_name}/run_uuid.json", 'w') as jsonfile:
+        with open(f"{artifact_dir}/run_uuid.json", 'w') as jsonfile:
             json.dump(self.run_id, jsonfile)
 
         # with open(f"{folder_name}/component_metadata.json", 'w') as jsonfile:

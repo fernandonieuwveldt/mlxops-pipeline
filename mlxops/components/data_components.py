@@ -196,7 +196,7 @@ class DataValidator(BasePipelineComponent):
     Examples
     --------
     >>> data_validator = DataValidator(
-        validator=IsolationForest(contamination=0.1)
+        validator=IsolationForest(contamination=0.01)
     )
     >>> data_validator.run(data_loader=data_loader, feature_mapper=feature_mapper)
     """
