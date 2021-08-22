@@ -91,7 +91,8 @@ data_validator.run(data_loader=data_loader, feature_mapper=feature_mapper)
 The mask for the train data can be retrieved from a property method. This mask can be used in conjunction with the DataLoader component to select only relevant samples. For example
 ```python
 eval_data, eval_targets = data_loader.train_set
-valid_eval_data, valid_eval_targets = eval_data[data_validator.trainset_valid], eval_targets[data_validator.trainset_valid]
+valid_eval_data, valid_eval_targets = eval_data[data_validator.trainset_valid],\
+                                      eval_targets[data_validator.trainset_valid]
 ```
 
 ## ModelTrainer Component of the Machine Learning experiment life cycle
@@ -101,7 +102,7 @@ The ModelTrainer takes in a sklearn type estimator that implements fit and predi
 base_trainer = ModelTrainer(
     estimator=LogisticRegression()
 )
-base_trainer.run(data_loader=data_loader, feature_mapper=feature_mapper, data_validator=data_validator)
+base_trainer.run(data_loader, feature_mapper, data_validator)
 ```
 Let save this base model and build a new model. We will compare the new model against the base model later.
 ```python
@@ -113,7 +114,7 @@ Let build a second challenger model using a random forest classifier
 new_trainer = ModelTrainer(
     estimator=RandomForestClassifier(n_estimators=50)
 )
-new_trainer.run(data_loader=data_loader, feature_mapper=feature_mapper, data_validator=data_validator)
+new_trainer.run(data_loader, feature_mapper, data_validator)
 ```
 
 ## ModelEvaluator component step in the Machine Learning life cycle
@@ -123,8 +124,7 @@ The ModelEvaluator component compares two models based on the supplied metrics. 
 evaluator = ModelEvaluator(base_model="base_model",
                            metrics=[accuracy_score])
 evaluator.run(
-    data_loader=data_loader, feature_mapper=feature_mapper, data_validator=data_validator,
-    new_model=new_trainer
+    data_loader, feature_mapper, data_validator, new_trainer
 )
 ```
 To check if this model should be pushed:
