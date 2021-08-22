@@ -56,6 +56,7 @@ class BasePipeline:
 
         with open(f"{folder_name}/run_uuid.json", 'r') as jsonfile:
             run_uuid = json.load(jsonfile)
+
         setattr(self, "run_id", run_uuid)
 
         for name, component in component_instance_connector.items():

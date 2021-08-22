@@ -109,8 +109,8 @@ class DataLoader(BasePipelineComponent):
         """
         state = self.__dict__.copy()
         # add file_name to state
-        if __class__.file_name:
-            state['file_name'] = __class__.file_name
+        if hasattr(self, "file_name"):
+            state['file_name'] = self.file_name
         # Remove the unpicklable entries.
         del state['data']
         return state
