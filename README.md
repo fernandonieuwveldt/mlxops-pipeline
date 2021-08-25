@@ -108,7 +108,7 @@ base_trainer.run(data_loader, feature_mapper, data_validator)
 ```
 Let save this base model and build a new model. We will compare the new model against the base model later.
 ```python
-mlxops.saved_model.save_component("lr_base_model")
+mlxops.saved_model.save(base_trainer, "lr_base_model")
 ```
 
 Let build a second challenger model using a random forest classifier
