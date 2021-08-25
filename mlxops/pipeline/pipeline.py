@@ -6,11 +6,6 @@ import pathlib
 from .base import BasePipeline
 from mlxops.components import ArtifactPusher
 
-# Can have high level pipeline to test multiple models perhaps?>>
-# Or Supply different estimators to the ModelTrainer component
-
-# Pipeline needs to record initial state of components.
-
 
 class ModelTrainingPipeline(BasePipeline):
     """Holds context throughout the pipeline"""
