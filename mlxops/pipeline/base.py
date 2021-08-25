@@ -11,6 +11,8 @@ class BasePipeline:
     """Base class for all Pipeline. Contains metadata registring and saving final component state
     during pipeline"""
 
+    _type = "pipeline"
+
     @property
     def model_training_metadata(self):
         """Return metadata of all runned pipeline components
