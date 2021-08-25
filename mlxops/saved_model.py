@@ -32,9 +32,6 @@ class PersistComponent(_BasePersistor):
             component: component to be saved
             artifact_dir ([str]): location of artifact
         """
-        artifact_path = pathlib.Path(artifact_dir)
-        artifact_path.mkdir(parents=True)
-
         pickle.dump(
             artifact, open(f"{artifact_dir}/{artifact.__class__.__name__}.pkl", 'wb')
         )
@@ -67,10 +64,8 @@ class PersistPipeline(_BasePersistor):
         """
         artifact_path = pathlib.Path(artifact_dir)
         artifact_path.mkdir(parents=True)
-
         component_instance_connector = {}
         for instance_name, component in pipeline.__dict__.items():
-            # change the hasattr to issubclass(component, BasePipelineComponent)
             if hasattr(component, 'run'):
                 component_instance_connector[component.__class__.__name__] = instance_name
                 save_component(component, artifact_dir)
@@ -106,6 +101,31 @@ class PersistPipeline(_BasePersistor):
             )
 
 
+class PersistorFactory:
+    """Concrete class to select
+    """
+    def __init__(self):
+        pass
+
+    def save(self, component, artifact_dir):
+        """Save component artifacts
+
+        Args:
+            component: component to be saved
+            artifact_dir (str): directory location
+        """
+
+    def load(self, artifact_dir):
+        """load the component artifact
+
+        Args:
+            artifact_dir (str): directory location
+
+        Returns:
+            component: loaded component
+        """
+
+
 def load_component(artifact_dir):
     """load the component artifact
 
@@ -130,7 +150,7 @@ def save_component(component, artifact_dir):
     return
 
 
-def load_pipeline(artifact_dir):
+def load(artifact_dir):
     """load the component artifact
 
     Args:
@@ -144,7 +164,7 @@ def load_pipeline(artifact_dir):
     return _pipeline
 
 
-def save_pipeline(pipeline, artifact_dir):
+def save(pipeline, artifact_dir):
     """Save component artifacts
 
     Args:

@@ -3,7 +3,7 @@ import pathlib
 import shutil
 import pandas
 
-from .base import BasePipelineComponent
+from .base import BaseComponent
 
 MODEL_DEV_DIR="dev"
 # If dev model is better than current release(best) model
@@ -12,7 +12,7 @@ MODEL_DEV_DIR="dev"
 MODEL_RELEASE_DIR="release"
 
 
-class ArtifactPusher(BasePipelineComponent):
+class ArtifactPusher(BaseComponent):
     """Push all training artifacts if model performance better than prod model
     """
     ARTIFACT_DIR = 'saved_models'

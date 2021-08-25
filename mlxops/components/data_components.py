@@ -6,11 +6,11 @@ import shutil
 import pandas
 from sklearn.base import TransformerMixin
 
-from .base import BasePipelineComponent
+from .base import BaseComponent
 from .infered_feature_pipeline import InferedFeaturePipeline
 
 
-class DataLoader(BasePipelineComponent):
+class DataLoader(BaseComponent):
     """
     Data loading component of the training pipeline
 
@@ -125,7 +125,7 @@ class DataLoader(BasePipelineComponent):
             self.data = pandas.read_csv(self.file_name)
 
 
-class DataFeatureMapper(BasePipelineComponent, TransformerMixin):
+class DataFeatureMapper(BaseComponent, TransformerMixin):
     """Feature processing pipeline. Apply Feature mapper for example Normalization for
     numeric features and OneHotEncoder for categoric features. Mapper here is stateful.
 
@@ -190,7 +190,7 @@ class DataFeatureMapper(BasePipelineComponent, TransformerMixin):
         }
 
 
-class DataValidator(BasePipelineComponent):
+class DataValidator(BaseComponent):
     """Data validation component of the training pipeline
 
     Examples

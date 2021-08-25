@@ -5,10 +5,10 @@ import pathlib
 import shutil
 import pandas
 
-from .base import BasePipelineComponent
+from .base import BaseComponent
 
 
-class ModelTrainer(BasePipelineComponent):
+class ModelTrainer(BaseComponent):
     """
     Model component of the training pipeline. ModelTrainer is the step 4 in the Pipeline and needs
     a runned DataLoader, DataFeatureMapper and DataValidator to fit estimator. 
@@ -58,7 +58,7 @@ class ModelTrainer(BasePipelineComponent):
         }
 
 
-class ModelEvaluator(BasePipelineComponent):
+class ModelEvaluator(BaseComponent):
     """Compare metrics between trained model and current model in production
 
     Examples
@@ -150,7 +150,7 @@ class ModelEvaluator(BasePipelineComponent):
         }
 
 
-class ModelScore(BasePipelineComponent):
+class ModelScore(BaseComponent):
     """Score datasets with supplied model
     """
     def __init__(self, model=None):

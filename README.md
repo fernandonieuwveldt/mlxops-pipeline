@@ -17,6 +17,7 @@ Model file structure:
 │   │   ├── __init__.py
 │   │   ├── pipeline.py
 │   ├── __init__.py
+│   ├── saved_model.py
 ├── CHANGELOG.md
 ├── LICENSE
 ├── MANIFEST.in
@@ -46,11 +47,12 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import ShuffleSplit
 
 # local imports
+import mlxops
 from mlxops.components import DataLoader, DataFeatureMapper, DataValidator
 from mlxops.components import ModelTrainer, ModelEvaluator, ArtifactPusher
-from sklearn.model_selection import ShuffleSplit
 ```
 
 ## DataLoader component of the life cycle
@@ -106,7 +108,7 @@ base_trainer.run(data_loader, feature_mapper, data_validator)
 ```
 Let save this base model and build a new model. We will compare the new model against the base model later.
 ```python
-base_trainer.save('lr_base_model')
+mlxops.saved_model.save_component("lr_base_model")
 ```
 
 Let build a second challenger model using a random forest classifier
@@ -173,15 +175,14 @@ train_pipeline = ModelTrainingPipeline(
     **train_pipeline_arguments
 )
 train_pipeline.run()
-train_pipeline.save_model_artifacts("base_model")
+mlxops.saved_model.save(train_pipeline, "base_model")
 ```
 
-The ```save_model_artifacts``` saves all component artifacts used in the pipeline along with other metadata. Lets load the saved pipeline
+The ```saved_model``` module saves all component artifacts used in the pipeline along with other metadata. Lets load the saved pipeline
 ```python
 del train_pipeline
 
-loaded_pipeline = ModelTrainingPipeline()
-loaded_pipeline.load("base_model")
+loaded_pipeline = mlxops.saved_model.load("base_model")
 ```
 Each component can be access through ```loaded_pipeline.component``` where component can be any of:
 ```
