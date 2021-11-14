@@ -5,6 +5,7 @@ import pathlib
 import shutil
 import pandas
 
+import mlxops
 from .base import BaseComponent
 
 
@@ -87,9 +88,8 @@ class ModelEvaluator(BaseComponent):
         Args:
             base_model_folder ([str]): directory of saved model artifacts
         """
-        from mlxops.components import DataFeatureMapper
-        self.base_model_feature_mapper = DataFeatureMapper.load(base_model_folder)
-        self.base_model_estimator = ModelTrainer.load(base_model_folder)
+        self.base_model_feature_mapper = mlxops.saved_model.load(f"{base_model_folder}/DataFeatureMapper.pkl")
+        self.base_model_estimator = mlxops.saved_model.load(f"{base_model_folder}/ModelTrainer.pkl")
 
     def extract_data(self, data_loader, data_validator):
         """Extract valid data 
