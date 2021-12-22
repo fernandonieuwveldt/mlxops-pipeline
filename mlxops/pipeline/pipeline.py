@@ -30,9 +30,12 @@ class ModelTrainingPipeline(BasePipeline):
         """Run all components of the training pipeline"""
         # Should each component keep a reference to previous components in the pipeline?
         self.data_loader.run()
-        self.feature_mapper.run(data_loader=self.data_loader)
+        self.feature_mapper.run(
+            data_loader=self.data_loader
+        )
         self.data_validator.run(
-            data_loader=self.data_loader, feature_mapper=self.feature_mapper
+            data_loader=self.data_loader,
+            feature_mapper=self.feature_mapper
         )
         self.trainer.run(
             data_loader=self.data_loader,

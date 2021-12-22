@@ -37,6 +37,8 @@ class ModelTrainer(BaseComponent):
         train_targets = train_targets.loc[data_validator.trainset_valid]
         train_data_mapped = feature_mapper.transform(train_data)
         self.estimator.fit(train_data_mapped, train_targets)
+        self.set_local_components(locals())
+        return self
 
     def predict(self, data=None, feature_mapper=None):
         """Apply feature mapper to map raw feature to estimator ready array and apply fitted estimator.
