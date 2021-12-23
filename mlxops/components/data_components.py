@@ -21,18 +21,26 @@ class DataLoader(BaseComponent):
     )
     >>> data_loader.run()
     """
-    def __init__(self, data, target=None, splitter=None, preprocessors=[]):
+    N_SPLITS = 1
+    SPLIT_RATIOS = {
+        'train_ratio': 0.75,
+        'eval_ratio': 0.15,
+        'test_ratio': 0.10
+    }
+    def __init__(self, data, target=None, preprocessors=[], splitter=None, split_ratios=None):
         if target is not None:
             self.target = data.pop(target)
         self.data = data
+        self.preprocessors = preprocessors
+        if not isinstance(self.preprocessors, list):
+            self.preprocessors = list(preprocessors)
         if splitter is not None:
             if not hasattr(splitter, "get_n_splits"):
                 raise("splitter should have get_n_splits method")
         self.splitter = splitter
+        if split_ratios is None:
+            self.split_ratios = self.SPLIT_RATIOS
         # preprocessors should be stateless
-        self.preprocessors = preprocessors
-        if not isinstance(self.preprocessors, list):
-            self.preprocessors = list(preprocessors)
         self._train_set = None
         self._test_set = None
         self._eval_set = None
@@ -53,6 +61,30 @@ class DataLoader(BaseComponent):
         data = pandas.read_csv(cls.file_name)
         return cls(data, *args, **kwargs)
 
+    def split_data(self, X, y, splitter):
+        """
+        Split data in train and test set
+        """
+        splitter.get_n_splits(
+            X=X, y=y,
+        )
+        first_split, second_split = next(
+            splitter.split(X=X, y=y)
+        )
+        return first_split, second_split
+
+    def create_sets(self):
+        """
+        Create train, eval and test sets
+        """
+        train_splitter = self.splitter(n_splits=self.N_SPLITS, test_size=1-self.split_ratios['train_ratio'])
+        self._train_set, self._test_set = self.split_data(self.data, self.target, train_splitter)
+        # use test_set property to split again
+        _test_data, _test_targets = self.test_set
+        _test_split_ratio = self.split_ratios['test_ratio'] / (self.split_ratios['test_ratio'] + self.split_ratios['eval_ratio'])
+        test_eval_splitter = self.splitter(n_splits=self.N_SPLITS, test_size=_test_split_ratio)
+        self._eval_set, self._test_set = self.split_data(_test_data, _test_targets, test_eval_splitter)
+
     def run(self):
         """Apply preprocessors if supplied. Split data into train and test splits using splitter
 
@@ -61,18 +93,13 @@ class DataLoader(BaseComponent):
         """
         if self.preprocessors:
             for preprocessor in self.preprocessors:
+                # Should the preprocessor run after the data was split?
+                # And than run preprocessor separately on each split?
                 self.data = preprocessor.transform(self.data)
 
         if all([self.splitter is not None,
                 self.target is not None]):
-            self.splitter.get_n_splits(
-                X=self.data, y=self.target, 
-            )
-            self._train_set, self._test_set = next(
-                self.splitter.split(X=self.data, y=self.target)
-            )
-            # We can split on test_set to create eval_set?
-            self._eval_set = self._test_set
+            self.create_sets()
         return self
 
     @property
