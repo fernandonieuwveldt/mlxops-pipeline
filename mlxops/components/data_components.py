@@ -5,6 +5,7 @@ import pathlib
 import shutil
 import pandas
 from sklearn.base import TransformerMixin
+from sklearn.pipeline import make_pipeline
 
 from .base import BaseComponent
 from .infered_feature_pipeline import InferedFeaturePipeline
@@ -27,13 +28,16 @@ class DataLoader(BaseComponent):
         'eval_ratio': 0.15,
         'test_ratio': 0.10
     }
-    def __init__(self, data, target=None, preprocessors=[], splitter=None, split_ratios=None):
+    def __init__(self, data, target=None, feature_transformer=[], splitter=None, split_ratios=None):
         if target is not None:
             self.target = data.pop(target)
         self.data = data
-        self.preprocessors = preprocessors
-        if not isinstance(self.preprocessors, list):
-            self.preprocessors = list(preprocessors)
+        self.feature_transformer = feature_transformer
+        if self.feature_transformer:
+            if isinstance(self.feature_transformer, list):
+                self.feature_transformer = make_pipeline(*self.feature_transformer)
+            else:
+                self.feature_transformer = make_pipeline(*[self.feature_transformer])
         if splitter is not None:
             if not hasattr(splitter, "get_n_splits"):
                 raise("splitter should have get_n_splits method")
@@ -80,7 +84,8 @@ class DataLoader(BaseComponent):
         self._train_set, self._test_set = self.split_data(self.data, self.target, train_splitter)
         # use test_set property to split again
         _test_data, _test_targets = self.test_set
-        _test_split_ratio = self.split_ratios['test_ratio'] / (self.split_ratios['test_ratio'] + self.split_ratios['eval_ratio'])
+        _test_split_ratio = self.split_ratios['test_ratio'] /\
+                            (self.split_ratios['test_ratio'] + self.split_ratios['eval_ratio'])
         test_eval_splitter = self.splitter(n_splits=self.N_SPLITS, test_size=_test_split_ratio)
         self._eval_set, self._test_set = self.split_data(_test_data, _test_targets, test_eval_splitter)
 
@@ -90,11 +95,10 @@ class DataLoader(BaseComponent):
         Returns:
             [DataLoader]: self
         """
-        if self.preprocessors:
-            for preprocessor in self.preprocessors:
-                # Should the preprocessor run after the data was split?
-                # And than run preprocessor separately on each split?
-                self.data = preprocessor.transform(self.data)
+        if self.feature_transformer:
+            # Should the preprocessor run after the data was split?
+            # And than run preprocessor separately on each split?
+            self.data = self.feature_transformer.transform(self.data)
 
         if all([self.splitter is not None,
                 self.target is not None]):
@@ -133,7 +137,7 @@ class DataLoader(BaseComponent):
 
         return {
             'file_name': self.file_name,
-            'preprocessor': self.preprocessors,
+            'feature_transformer': self.feature_transformer,
             **self.outputs
         }
 
