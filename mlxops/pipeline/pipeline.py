@@ -3,6 +3,7 @@
 import logging
 import pathlib
 
+import mlxops
 from .base import BasePipeline
 from mlxops.components import ArtifactPusher
 
@@ -53,17 +54,38 @@ class ModelTrainingPipeline(BasePipeline):
 
 
 class ScoringPipeline(BasePipeline):
-    """Scoring pipeline of new batches of samples
+    """Score datasets with supplied model
     """
-    def __init__(self, data_loader=None, data_validator=None, scorer=None):
-        # initialise pipeline components
-        self.data_loader = data_loader
-        self.scorer = scorer
+    def __init__(self, model=None, data_validator=None, feature_mapper=None):
+        self.model = model
         self.data_validator = data_validator
+        self.feature_mapper = feature_mapper
+        self.mask = None
+        self.predictions = {}
 
-    def run(self):
-        """Run all components of the scoring pipeline"""
-        self.data_loader.run()
-        self.data_validator.run(data_loader=self.data_loader)
-        results = self.scorer.run(data_loader=self.data_loader(),
-                                  data_validator=self.data_validator)
+    @classmethod
+    def load_from_file(cls, folder=None):
+        """
+        Load train artifacts from folder
+        """
+        model = mlxops.saved_model.load_component(f"{folder}/ModelTrainer.pkl")
+        feature_mapper = mlxops.saved_model.load_component(f"{folder}/DataFeatureMapper.pkl")
+        data_validator = mlxops.saved_model.load_component(f"{folder}/DataValidator.pkl")
+        return cls(
+            model = model,
+            data_validator = data_validator,
+            feature_mapper = feature_mapper
+            )
+
+    def run(self, data_loader=None):
+        """Score data with supplied model.
+
+        Args:
+            data_loader ([DataLoader]): data loading component holding data and dataset splits.
+        """
+        # get mask if validator was run
+        if self.data_validator.validator is not None:
+            self.mask = self.data_validator.check_validity(data_loader.data, self.feature_mapper)
+        # we will predict on all samples. Use mask to filter after scoring
+        self.predictions = self.model.predict(data_loader.data, self.feature_mapper)
+        return self

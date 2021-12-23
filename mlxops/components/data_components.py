@@ -21,16 +21,21 @@ class DataLoader(BaseComponent):
     )
     >>> data_loader.run()
     """
-    def __init__(self, data, target, splitter, preprocessors=[]):
-        self.target = data.pop(target)
+    def __init__(self, data, target=None, splitter=None, preprocessors=[]):
+        if target is not None:
+            self.target = data.pop(target)
         self.data = data
-        if not hasattr(splitter, "get_n_splits"):
-            raise("splitter should have get_n_splits method")
+        if splitter is not None:
+            if not hasattr(splitter, "get_n_splits"):
+                raise("splitter should have get_n_splits method")
         self.splitter = splitter
         # preprocessors should be stateless
         self.preprocessors = preprocessors
         if not isinstance(self.preprocessors, list):
             self.preprocessors = list(preprocessors)
+        self._train_set = None
+        self._test_set = None
+        self._eval_set = None
 
     # DataLoader should be instantiated by loading data and preferable for
     # pickling/unpickling. See __getstate__ and setstate__
@@ -58,14 +63,16 @@ class DataLoader(BaseComponent):
             for preprocessor in self.preprocessors:
                 self.data = preprocessor.transform(self.data)
 
-        self.splitter.get_n_splits(
-            X=self.data, y=self.target, 
-        )
-        self._train_set, self._test_set = next(
-            self.splitter.split(X=self.data, y=self.target)
-        )
-        # We can split on test_set to create eval_set?
-        self._eval_set = self._test_set
+        if all([self.splitter is not None,
+                self.target is not None]):
+            self.splitter.get_n_splits(
+                X=self.data, y=self.target, 
+            )
+            self._train_set, self._test_set = next(
+                self.splitter.split(X=self.data, y=self.target)
+            )
+            # We can split on test_set to create eval_set?
+            self._eval_set = self._test_set
         return self
 
     @property

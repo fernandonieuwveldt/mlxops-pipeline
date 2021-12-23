@@ -150,24 +150,3 @@ class ModelEvaluator(BaseComponent):
             'push_model': self.push_model,
             'metrics': self.evaluation_metrics
         }
-
-
-class ModelScore(BaseComponent):
-    """Score datasets with supplied model
-    """
-    def __init__(self, model=None):
-        self.model = model
-        self.predictions = {}
-
-    def run(self, data_loader=None, feature_mapper=None, data_validator=None):
-        """Score data with new and current production(or best) model and compare results.
-
-        Args:
-            data_loader ([DataLoader]): data loading component holding data and dataset splits.
-            feature_mapper ([DataFeatureMapper]): Feature transformer steps of a sklearn Pipeline.
-            data_validator ([DataValidator]): Data input validator.
-        """
-        for set_name, data_set in data_loader.outputs.items():
-            data_set = getattr(data_loader, set_name)[0]
-            self.predictions[set_name] = self.model.predict(data_set)
-        return self

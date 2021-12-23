@@ -20,3 +20,6 @@ class BasePipeline:
         return {component.__class__.__name__: component.metadata
                 for _, component in self.__dict__.items() if hasattr(component, 'run')
         }
+
+    def __repr__(self):
+        return f"Completed {self.__class__.__name__} pipeline run"

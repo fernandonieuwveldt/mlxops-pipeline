@@ -8,6 +8,9 @@ import pickle
 from mlxops.components import _COMPONENT_MAPPER
 
 
+# TODO: create one object(container) that holds all components???
+
+
 class _BasePersistor(ABC):
     """Base interface for saving and loaded component and pipeline artifacts. All methods
     are classmethods
