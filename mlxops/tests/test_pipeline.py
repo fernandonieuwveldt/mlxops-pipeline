@@ -5,6 +5,7 @@ import unittest
 
 import pandas as pd
 
+from sklearn.base import TransformerMixin
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import roc_auc_score
@@ -25,9 +26,17 @@ class TestPipeline(unittest.TestCase):
     def test_train_pipeline(self):
         """Test full training pipeline
         """
+        class MockTransformer(TransformerMixin):
+            def __init__(self):
+                pass
+            def fit(self, X, y=None):
+                return self
+            def transform(self, X):
+                return X
+
         train_pipeline_arguments = {
             'data_loader': DataLoader.from_file(
-                file_name=self.url, target='target', splitter=ShuffleSplit
+                file_name=self.url, target='target', feature_transformer=[MockTransformer()], splitter=ShuffleSplit
             ),
             'data_validator': DataValidator(
                 validator=IsolationForest(contamination=0.01)
