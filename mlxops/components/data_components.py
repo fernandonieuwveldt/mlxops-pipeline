@@ -68,10 +68,9 @@ class DataLoader(BaseComponent):
         splitter.get_n_splits(
             X=X, y=y,
         )
-        first_split, second_split = next(
+        return next(
             splitter.split(X=X, y=y)
         )
-        return first_split, second_split
 
     def create_sets(self):
         """
