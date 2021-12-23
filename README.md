@@ -123,7 +123,7 @@ new_trainer.run(data_loader, feature_mapper, data_validator)
 The ModelEvaluator component compares two models based on the supplied metrics. he ModelEvaluator's run method takes components DataLoader, DataFeatureMapper and DataValidator component as inputs as well as a new trained model. The base model is an instance atrributes of the class.
 
 ```python
-evaluator = ModelEvaluator(base_model="base_model",
+evaluator = ModelEvaluator(base_model="lr_base_model",
                            metrics=[accuracy_score])
 evaluator.run(
     data_loader, feature_mapper, data_validator, new_trainer
@@ -162,7 +162,7 @@ train_pipeline_arguments = {
         estimator=RandomForestClassifier(n_estimators=100, max_depth=3)
     ),
     'evaluator': ModelEvaluator(
-        base_model='base_model',
+        base_model='lr_base_model',
         metrics=[accuracy_score]
     ),
     'pusher': ArtifactPusher(model_serving_dir='testfolder'),

@@ -157,6 +157,7 @@ class DataFeatureMapper(BaseComponent, TransformerMixin):
         """
         train_data, train_targets = data_loader.train_set
         self.fit(train_data)
+        return self
 
     def fit(self, X, y=None):
         """Wrap feature pipeline and fit pipeline

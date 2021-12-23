@@ -24,7 +24,11 @@ class _BasePersistor(ABC):
 class PersistComponent(_BasePersistor):
     """Saving and loading for pipeline components
     """
-
+    @classmethod
+    def save_component(cls, artifact, artifact_dir):
+        pickle.dump(
+            artifact, open(f"{artifact_dir}/{artifact.__class__.__name__}.pkl", 'wb')
+        )
 
     @classmethod
     def save(cls, artifact, artifact_dir):
@@ -34,9 +38,13 @@ class PersistComponent(_BasePersistor):
             component: component to be saved
             artifact_dir ([str]): location of artifact
         """
-        pickle.dump(
-            artifact, open(f"{artifact_dir}/{artifact.__class__.__name__}.pkl", 'wb')
-        )
+        artifact_path = pathlib.Path(artifact_dir)
+        artifact_path.mkdir(parents=True, exist_ok=True)
+        component_instance_connector = {}
+        for instance_name, component in artifact.__dict__.items():
+            if hasattr(component, 'run'):
+                component_instance_connector[component.__class__.__name__] = instance_name
+                cls.save_component(component, artifact_dir)
 
     @classmethod
     def load(cls, artifact_dir):
@@ -48,16 +56,15 @@ class PersistComponent(_BasePersistor):
         Returns:
             [type]: [description]
         """
-        return pickle.load(
-            open(f"{artifact_dir}", 'rb')
-        )
+        with open(f"{artifact_dir}", 'rb') as pfile:
+            artifact = pickle.load(pfile)
+        return artifact
 
 
 class PersistPipeline(_BasePersistor):
     """Saving and loading of full pipelines. All classes that has run method will be saved
     and loaded
     """
-
     @classmethod
     def save(cls, pipeline, artifact_dir=None):
         """Save all training artifacts set at training
@@ -71,7 +78,7 @@ class PersistPipeline(_BasePersistor):
         for instance_name, component in pipeline.__dict__.items():
             if hasattr(component, 'run'):
                 component_instance_connector[component.__class__.__name__] = instance_name
-                save_component(component, artifact_dir)
+                PersistComponent.save_component(component, artifact_dir)
 
         with open(f"{artifact_dir}/component_instance_connector.json", 'w') as jsonfile:
             json.dump(component_instance_connector, jsonfile)
@@ -128,6 +135,17 @@ def save_component(component, artifact_dir):
     return
 
 
+def save_pipeline(component, artifact_dir):
+    """Save component artifacts
+
+    Args:
+        component: component to be saved
+        artifact_dir (str): directory location
+    """
+    PersistPipeline.save(component, artifact_dir)
+    return
+
+
 def load_pipeline(artifact_dir):
     """load all saved artifacts from pipeline run
 
@@ -156,7 +174,7 @@ def save(obj, artifact_dir):
     if obj._type == "pipeline":
         PersistPipeline.save(obj, artifact_dir)
         return
-    raise "object to be pickled not of type component or pipeline"
+    raise TypeError("object to be pickled not of type component or pipeline")
 
 
 def load(artifact_dir):
@@ -170,6 +188,8 @@ def load(artifact_dir):
         [component, pipeline]: loaded component or pipeline
     """
     artifact_path = pathlib.Path(artifact_dir)
+    if not artifact_path.exists():
+        raise FileNotFoundError(f"No such file or directory: {artifact_dir}")
     if artifact_path.is_file() and artifact_path.suffix == '.pkl':
         return load_component(artifact_dir)
     if artifact_path.is_dir():

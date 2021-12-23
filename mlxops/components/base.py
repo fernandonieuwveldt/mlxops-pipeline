@@ -15,6 +15,7 @@ class BaseComponent(ABC):
     @abstractmethod
     def run(self, *args, **kwargs):
         """Run the pipeline component"""
+        return self
 
     @property
     @abstractmethod
@@ -37,3 +38,11 @@ class BaseComponent(ABC):
         return {
             key: getattr(self, key) for key in self.get_init_args() 
         }
+
+    def set_local_components(self, local_variables):
+        for name, var in local_variables.items():
+            if hasattr(var, 'run'):
+                self.__dict__.update({name: var})
+
+    def __repr__(self):
+        return f"Completed {self.__class__.__name__} component run"

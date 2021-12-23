@@ -9,7 +9,9 @@ MODEL_DEV_DIR="dev"
 # If dev model is better than current release(best) model
 # Copy artifacts of dev model to release directory
 # Move previous release model to prod_previous?
-MODEL_RELEASE_DIR="release"
+MODEL_RELEASE_DIR = "release"
+MODEL_CURRENT_PROD = 'prod'
+MODEL_PREV_PROD = 'pre_prod'
 
 
 class ArtifactPusher(BaseComponent):
