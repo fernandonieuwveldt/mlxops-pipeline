@@ -27,7 +27,7 @@ class TestPipeline(unittest.TestCase):
         """
         train_pipeline_arguments = {
             'data_loader': DataLoader.from_file(
-                file_name=self.url, target='target', splitter=ShuffleSplit(n_splits=1, test_size=0.25)
+                file_name=self.url, target='target', splitter=ShuffleSplit
             ),
             'data_validator': DataValidator(
                 validator=IsolationForest(contamination=0.01)

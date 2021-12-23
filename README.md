@@ -60,7 +60,7 @@ Load data using the DataLoader to load data:
 
 ```python
 file_url = "http://storage.googleapis.com/download.tensorflow.org/data/heart.csv"
-data_loader = DataLoader.from_file(file_url, target='target', splitter=ShuffleSplit(n_splits=1, test_size=0.1))
+data_loader = DataLoader.from_file(file_url, target='target', splitter=ShuffleSplit)
 data_loader.run()
 ```
 DataLoader splits data into train, test and evaulation sets. These sets can retrieved from the following properties
@@ -92,9 +92,9 @@ data_validator.run(data_loader=data_loader, feature_mapper=feature_mapper)
 ```
 The mask for the train data can be retrieved from a property method. This mask can be used in conjunction with the DataLoader component to select only relevant samples. For example
 ```python
-eval_data, eval_targets = data_loader.train_set
-valid_eval_data, valid_eval_targets = eval_data[data_validator.trainset_valid],\
-                                      eval_targets[data_validator.trainset_valid]
+train_data, train_targets = data_loader.train_set
+valid_train_data, valid_train_targets = train_data[data_validator.trainset_valid],\
+                                        train_targets[data_validator.trainset_valid]
 ```
 
 ## ModelTrainer Component of the Machine Learning experiment life cycle
@@ -152,7 +152,7 @@ file_url = "http://storage.googleapis.com/download.tensorflow.org/data/heart.csv
 
 train_pipeline_arguments = {
     'data_loader': DataLoader.from_file(
-        file_name=file_url, target='target', splitter=ShuffleSplit(n_splits=1, test_size=0.25)
+        file_name=file_url, target='target', splitter=ShuffleSplit
     ),
     'data_validator': DataValidator(
         validator=IsolationForest(contamination=0.01)
