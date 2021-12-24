@@ -61,10 +61,10 @@ class TestPipeline(unittest.TestCase):
 
     def test_scoring_pipeline_from_file(self):
         """Test scoring pipeline"""
-        data_loader = DataLoader.from_file(self.url)
-        data_loader.data.drop('target', axis=1, inplace=True)
+        data = pd.read_csv(self.url)
+        data.drop('target', axis=1, inplace=True)
         scorer = ScoringPipeline.load_from_file("mlxops/tests/test_artifacts")
-        scorer.run(data_loader)
+        scorer.run(data)
         assert True
         assert scorer.mask.shape[0] == scorer.predictions.shape[0]        
 
