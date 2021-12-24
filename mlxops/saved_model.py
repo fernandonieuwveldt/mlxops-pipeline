@@ -15,18 +15,6 @@ class _BasePersistor(ABC):
     """Base interface for saving and loaded component and pipeline artifacts. All methods
     are classmethods
     """
-    @abstractmethod
-    def save(self, artifact, artifact_dir):
-        pass
-
-    @abstractmethod
-    def load(self, artifact_dir):
-        pass
-
-
-class PersistComponent(_BasePersistor):
-    """Saving and loading for pipeline components
-    """
     @classmethod
     def save_component(cls, artifact, artifact_dir):
         pickle.dump(
@@ -43,12 +31,18 @@ class PersistComponent(_BasePersistor):
         """
         artifact_path = pathlib.Path(artifact_dir)
         artifact_path.mkdir(parents=True, exist_ok=True)
-        component_instance_connector = {}
         for instance_name, component in artifact.__dict__.items():
             if hasattr(component, 'run'):
-                component_instance_connector[component.__class__.__name__] = instance_name
                 cls.save_component(component, artifact_dir)
 
+    @abstractmethod
+    def load(self, artifact_dir):
+        pass
+
+
+class PersistComponent(_BasePersistor):
+    """Saving and loading for pipeline components
+    """
     @classmethod
     def load(cls, artifact_dir):
         """Load saved metadata
@@ -75,13 +69,12 @@ class PersistPipeline(_BasePersistor):
         Args:
             artifact_dir ([str]): Folder location to save artifacts
         """
-        artifact_path = pathlib.Path(artifact_dir)
-        artifact_path.mkdir(parents=True)
+        super().save(pipeline, artifact_dir)
+
         component_instance_connector = {}
         for instance_name, component in pipeline.__dict__.items():
             if hasattr(component, 'run'):
                 component_instance_connector[component.__class__.__name__] = instance_name
-                PersistComponent.save_component(component, artifact_dir)
 
         with open(f"{artifact_dir}/component_instance_connector.json", 'w') as jsonfile:
             json.dump(component_instance_connector, jsonfile)
