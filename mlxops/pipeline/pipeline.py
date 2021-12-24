@@ -56,8 +56,9 @@ class ModelTrainingPipeline(BasePipeline):
 class ScoringPipeline(BasePipeline):
     """Score datasets with supplied model
     """
-    def __init__(self, model=None, data_validator=None, feature_mapper=None):
+    def __init__(self, model, data_loader, data_validator, feature_mapper):
         self.model = model
+        self.data_loader = data_loader
         self.data_validator = data_validator
         self.feature_mapper = feature_mapper
         self.mask = None
@@ -68,24 +69,30 @@ class ScoringPipeline(BasePipeline):
         """
         Load train artifacts from folder
         """
+        # loading should be handled by loading all components to one object
         model = mlxops.saved_model.load_component(f"{folder}/ModelTrainer.pkl")
+        data_loader = mlxops.saved_model.load_component(f"{folder}/DataLoader.pkl")
         feature_mapper = mlxops.saved_model.load_component(f"{folder}/DataFeatureMapper.pkl")
         data_validator = mlxops.saved_model.load_component(f"{folder}/DataValidator.pkl")
         return cls(
             model = model,
+            data_loader = data_loader,
             data_validator = data_validator,
             feature_mapper = feature_mapper
             )
 
-    def run(self, data_loader=None):
+    def run(self, data=None):
         """Score data with supplied model.
 
         Args:
-            data_loader ([DataLoader]): data loading component holding data and dataset splits.
+            data ([pandas.DataFrame]): data to be scored
         """
+        # apply stateless feature transformer if applied
+        if self.data_loader.feature_transformer:
+            data = self.data_loader.feature_transformer.transform(data)
         # get mask if validator was run
         if self.data_validator.validator is not None:
-            self.mask = self.data_validator.check_validity(data_loader.data, self.feature_mapper)
+            self.mask = self.data_validator.check_validity(data, self.feature_mapper)
         # we will predict on all samples. Use mask to filter after scoring
-        self.predictions = self.model.predict(data_loader.data, self.feature_mapper)
+        self.predictions = self.model.predict(data, self.feature_mapper)
         return self
