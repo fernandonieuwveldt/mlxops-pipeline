@@ -6,12 +6,7 @@ import pandas
 from .base import BaseComponent
 
 MODEL_DEV_DIR="dev"
-# If dev model is better than current release(best) model
-# Copy artifacts of dev model to release directory
-# Move previous release model to prod_previous?
-MODEL_RELEASE_DIR = "release"
-MODEL_CURRENT_PROD = 'prod'
-MODEL_PREV_PROD = 'pre_prod'
+MODEL_SERVING_DIR = 'prod'
 
 
 class ArtifactPusher(BaseComponent):
@@ -19,9 +14,13 @@ class ArtifactPusher(BaseComponent):
     """
     ARTIFACT_DIR = 'saved_models'
 
-    def __init__(self, model_serving_dir=None, run_id=None):
+    def __init__(self, ng_dir=None, run_id=None):
         self.model_serving_dir = model_serving_dir
         self.run_id = run_id
+
+    def _init_model_register(self):
+        artifact_path = pathlib.Path(artifact_dir)
+        artifact_path.mkdir(parents=True, exist_ok=True)
 
     def run(self, run_id=None):
         """Copy model training artifacts to model_data directory"""
