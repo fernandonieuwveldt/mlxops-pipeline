@@ -10,7 +10,7 @@ REQUIRES_PYTHON = '>=3.6.0'
 
 
 setup(
-    name="MLxOPS",
+    name="mlxops",
     version="0.1.0",
     author="Fernando Nieuwveldt",
     author_email="fdnieuwveldt@gmail.com",
