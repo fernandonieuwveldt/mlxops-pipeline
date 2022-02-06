@@ -1,30 +1,39 @@
-# (Another) Machine Learning Experiment and Operations Pipelines (MLxOPS)
+# Automating the ML Training Lifecycle with MLxOPS
 
-Pipeline for full Machine Learning development lifecycle with metadata.
+We tend to reinvent the training lifecycle on different projects. Given that most ML training lifecycle consist of similar steps
+we can automate most of the parts of an ML project. 
 
-Model file structure:
-```bash
-├── mlxops
-│   ├── components
-│   │   ├── base.py
-│   │   ├── data_components.py
-│   │   ├── infered_feature_pipeline.py
-│   │   ├── __init__.py
-│   │   ├── model_components.py
-│   │   └── serving_components.py
-│   ├── pipeline
-│   │   ├── base.py
-│   │   ├── __init__.py
-│   │   ├── pipeline.py
-│   ├── __init__.py
-│   ├── saved_model.py
-├── CHANGELOG.md
-├── LICENSE
-├── MANIFEST.in
-├── README.md
-├── requirements.txt
-├── setup.py
-```
+This package contains model training life cycle components for automating the training and scoring life cycle of models.
+Pandas dataframes are used as the underlying data object. As for the estimators, it can be sklearn type estimators that has 
+fit and predict method. Estimators like XGBoost en LightGBM can also be used. 
+
+MLxOPS serves as experiment and operations module by also persisting all metadata for each component and any artifacts we need to 
+reproduce results.
+
+The mlxops components module contains Machine Learning life cycle components of each step. The components consists of:
+* DataLoader
+    * Data loading component of the training pipeline. This component also contains any stateless preprocessing steps the user
+      wants to apply on the data.
+* DataFeatureMapper
+    * Feature processing pipeline. Apply Feature mapper for example Normalization for numeric features and OneHotEncoder for
+      categoric features. Mapper here is stateful.
+* DataValidator
+    * Data validation component of the training pipeline. Can use sklearn outlier detectors or use can implement their own. This validator
+      should return a mask where -1 is an outlier and 1 an inlier.
+* ModelTrainer
+    * Model component of the training pipeline. ModelTrainer depends on a runned DataLoader, DataFeatureMapper and DataValidator to fit estimator.
+* ModelEvaluator
+    * Compare metrics between trained model and current model in production. This can be any of the metrics implemented in sklearn
+* ArtifactPusher
+    * Pushes artifacts to PROD directory if current model is an improvement on the current best model
+
+<br />
+
+The mlxops package also contains high level interfaces for training and scoring using pipeline modules:
+* ModelTrainingPipeline
+    * This is a high level implementation of the training life cycle for all the steps in life cycle
+* ScoringPipeline
+    * This pipeline can be used to score data. The model can be loaded from disk or supplied.
 
 ## To install package:
 ```bash
@@ -33,13 +42,6 @@ pip install mlxops
 
 # Example 1: Using the different pipeline components
 
-The mlxops components module contains Machine Learning life cycle components of each step. The components consists of:
-* DataLoader
-* DataFeatureMapper
-* DataValidator
-* ModelTrainer
-* ModelEvaluator
-* ModelScore
 
 ```python
 import pandas as pd
