@@ -10,11 +10,11 @@ REQUIRES_PYTHON = '>=3.6.0'
 
 
 setup(
-    name="mlxops",
-    version="0.0.1",
+    name="MLxOPS",
+    version="0.1.0",
     author="Fernando Nieuwveldt",
     author_email="fdnieuwveldt@gmail.com",
-    description="Machine Learning Experiment and Operations Pipelines (MLxOPS)",
+    description="Automating the ML Training Lifecycle with MLxOPS",
     long_description_content_type='text/markdown',
     long_description=README,
     url="https://github.com/fernandonieuwveldt/mlxops_pipelines",
