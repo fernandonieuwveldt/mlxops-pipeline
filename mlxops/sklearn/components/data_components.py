@@ -7,11 +7,12 @@ import pandas
 from sklearn.base import TransformerMixin
 from sklearn.pipeline import make_pipeline
 
+from mlxops.base.data_components import BaseDataLoader
 from .base import BaseComponent
 from .infered_feature_pipeline import InferedFeaturePipeline
 
 
-class DataLoader(BaseComponent):
+class DataLoader(BaseDataLoader, BaseComponent):
     """
     Data loading component of the training pipeline
 
