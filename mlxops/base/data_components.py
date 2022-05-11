@@ -19,7 +19,8 @@ class BaseDataLoader(metaclass=ABCMeta):
 
     @abstractmethod
     def run(self):
-        """Apply preprocessors if supplied. Split data into train and test splits using splitter
+        """Apply preprocessors if supplied. Split data into train and 
+        test splits using splitter
 
         Returns:
             [DataLoader]: self
