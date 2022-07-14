@@ -20,7 +20,6 @@ class S3Connector:
         s3.Bucket(f"{bucket}-{region}").download_file(
             f"{file}", local_path
         )
-        # return self for method chaining
         return self
 
     def upload_to_s3(self, local_path, bucket_name=None):
@@ -30,7 +29,8 @@ class S3Connector:
             # upload to default sagemaker bucket
             bucket_name = self.sagemaker_session.default_bucket()
             base_uri = f"s3://{bucket_name}/{self.project_name}"
-        input_data_uri = sagemaker.s3.S3Uploader.upload(
+        
+        sagemaker.s3.S3Uploader.upload(
             local_path=local_path,
             desired_s3_uri=base_uri,
         )
@@ -43,6 +43,7 @@ if __name__ == '__main__':
         "file": "dataset/abalone-dataset.csv",
         "local_path": "abalone-dataset.csv"
     }
-    S3ToLocalDisk(sagemaker_session, project_name='abalone')\
+    connector = S3Connector(sagemaker_session, project_name='abalone')
+    connector\
         .get_from_s3(**source_parameters)\
         .upload_to_s3(local_path="abalone-dataset.csv")
