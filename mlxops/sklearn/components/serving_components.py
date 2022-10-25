@@ -1,7 +1,7 @@
 import logging
 import pathlib
 import shutil
-import pandas
+from sklearn.pipeline import make_pipeline
 
 from .base import BaseComponent
 
@@ -34,4 +34,32 @@ class ArtifactPusher(BaseComponent):
         """return metadata for artifact pusher"""
         return {
             'model_serving_dir': self.model_serving_dir
+        }
+
+
+class CreateInferencePipeline(BaseComponent):
+    """Create an Inference Pipeline from the fitted transformers and estimator"""
+
+    _type = 'component'
+
+    def __init__(self):
+        self.inference_pipeline = None
+
+    def run(self, transformer, estimator):
+        """Create inference pipeline should be a component
+
+        Args:
+            transformer (sklearn transformer): Fitted Transformer
+            estimator (sklearn estimator): Fitted Estimator
+        """
+        self.inference_pipeline = make_pipeline(
+            transformer, estimator
+        )
+        return self
+
+    @property
+    def metadata(self):
+        """return metadata for artifact pusher"""
+        return {
+            'inference_pipeline': self.inference_pipeline
         }

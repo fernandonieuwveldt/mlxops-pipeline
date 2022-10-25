@@ -5,7 +5,6 @@ import pathlib
 
 import mlxops
 from .base import BasePipeline
-from mlxops.sklearn.components import ArtifactPusher
 
 
 class ModelTrainingPipeline(BasePipeline):
