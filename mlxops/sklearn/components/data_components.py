@@ -7,11 +7,12 @@ import pandas
 from sklearn.base import TransformerMixin
 from sklearn.pipeline import make_pipeline
 
+from mlxops.base.data_components import BaseDataLoader
 from .base import BaseComponent
 from .infered_feature_pipeline import InferedFeaturePipeline
 
 
-class DataLoader(BaseComponent):
+class DataLoader(BaseDataLoader, BaseComponent):
     """
     Data loading component of the training pipeline
 
@@ -192,34 +193,23 @@ class DataFeatureMapper(BaseComponent, TransformerMixin):
         Returns:
             self
         """
-        train_data, train_targets = data_loader.train_set
+        train_data, _ = data_loader.train_set
         self.fit(train_data)
         return self
 
-    def fit(self, X, y=None):
-        """Wrap feature pipeline and fit pipeline
+    def __getattr__(self, __name):
+        """Dispatch the feature transformer fit and transform methods to the feature pipeline object
 
         Args:
-            X ([pandas.DataFrame]): Features DataFrame
-            y ([pandas.Series], optional): Targets
+            __name (str): method or attribute name
 
         Returns:
-            [DataFeatureMapper]: self
+            attr: Point attribute name to proper object.
         """
-        self.feature_pipeline.fit(X, y)
-        return self
-    
-    def transform(self, X):
-        """Transform X with fitted feature_pipeline
-
-        Args:
-            X ([pandas.DataFrame]): Features DataFrame
-
-        Returns:
-            [array]: array of transformed/mapped features for estimator input 
-        """
-        return self.feature_pipeline.transform(X)
-        
+        if __name in ["fit", "transform"]:
+            return self.feature_pipeline.__getattribute__(__name)
+        return self.__getattribute__(__name)
+     
     @property
     def metadata(self):
         """return DataFeatureMapper metadata for training run"""

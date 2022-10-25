@@ -4,7 +4,7 @@ import pathlib
 import json
 import pickle
 
-from mlxops.components import _COMPONENT_MAPPER
+from mlxops.sklearn.components import _COMPONENT_MAPPER
 
 
 class BasePipeline:

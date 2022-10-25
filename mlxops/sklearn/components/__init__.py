@@ -1,6 +1,6 @@
 from .data_components import DataLoader, DataFeatureMapper, DataValidator
 from .model_components import ModelTrainer, ModelEvaluator
-from .serving_components import ArtifactPusher
+from .serving_components import ArtifactPusher, CreateInferencePipeline
 
 
 _COMPONENT_MAPPER = {
@@ -9,5 +9,6 @@ _COMPONENT_MAPPER = {
     "DataFeatureMapper": DataFeatureMapper,
     "ModelTrainer": ModelTrainer,
     "ModelEvaluator": ModelEvaluator,
-    "ArtifactPusher": ArtifactPusher
+    "ArtifactPusher": ArtifactPusher,
+    "CreateInferencePipeline": CreateInferencePipeline
 }

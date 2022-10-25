@@ -11,10 +11,10 @@ from sklearn.ensemble import IsolationForest
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import ShuffleSplit
 
-from mlxops.components import DataLoader, DataValidator,\
+from mlxops.sklearn.components import DataLoader, DataValidator,\
     ModelTrainer, ModelEvaluator, ArtifactPusher, DataFeatureMapper
 
-from mlxops.pipeline import ModelTrainingPipeline, ScoringPipeline
+from mlxops.sklearn.pipeline import ModelTrainingPipeline, ScoringPipeline
 
 
 class TestPipeline(unittest.TestCase):
@@ -47,7 +47,7 @@ class TestPipeline(unittest.TestCase):
             ),
             'evaluator': ModelEvaluator(
                 # TODO: the loaded base model is not using saved feature mapper
-                base_model='mlxops/tests/test_artifacts',
+                base_model='mlxops/sklearn/tests/test_artifacts',
                 metrics=[roc_auc_score]
             ),
             'pusher': ArtifactPusher(model_serving_dir='testfolder'),
@@ -63,7 +63,7 @@ class TestPipeline(unittest.TestCase):
         """Test scoring pipeline"""
         data = pd.read_csv(self.url)
         data.drop('target', axis=1, inplace=True)
-        scorer = ScoringPipeline.load_from_file("mlxops/tests/test_artifacts")
+        scorer = ScoringPipeline.load_from_file("mlxops/sklearn/tests/test_artifacts")
         scorer.run(data)
         assert True
         assert scorer.mask.shape[0] == scorer.predictions.shape[0]        
