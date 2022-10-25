@@ -53,8 +53,8 @@ from sklearn.model_selection import ShuffleSplit
 
 # local imports
 import mlxops
-from mlxops.components import DataLoader, DataFeatureMapper, DataValidator
-from mlxops.components import ModelTrainer, ModelEvaluator, ArtifactPusher
+from mlxops.sklearn.components import DataLoader, DataFeatureMapper, DataValidator
+from mlxops.sklearn.components import ModelTrainer, ModelEvaluator, ArtifactPusher
 ```
 
 ## DataLoader component of the life cycle
@@ -144,7 +144,7 @@ evaluator.evaluation_metrics
 For a more high level interface. We can build a pipeline. Here we demonstrate a ModelTrainingPipeline. Similar to the example above.
 
 ```python
-from mlxops.pipeline import ModelTrainingPipeline
+from mlxops.sklearn.pipeline import ModelTrainingPipeline
 ```
 
 Setup Pipeline
